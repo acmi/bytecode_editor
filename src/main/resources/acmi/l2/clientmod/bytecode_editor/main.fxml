@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox stylesheets="@main.css" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1" fx:controller="acmi.l2.clientmod.bytecode_editor.Controller">
+   <children>
+      <MenuBar>
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+                  <MenuItem mnemonicParsing="false" onAction="#openPackage" text="Open...">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem mnemonicParsing="false" onAction="#compile" text="Compile">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="R" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <SeparatorMenuItem mnemonicParsing="false" />
+              <MenuItem mnemonicParsing="false" text="Close">
+                     <accelerator>
+                        <KeyCodeCombination alt="DOWN" code="F4" control="UP" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <SplitPane dividerPositions="0.3333333333333333" VBox.vgrow="ALWAYS">
+         <items>
+            <VBox>
+               <children>
+                  <ListView fx:id="entries" VBox.vgrow="ALWAYS" />
+                  <TitledPane text="Search">
+                     <content>
+                        <fx:include fx:id="search" source="search/search.fxml" />
+                     </content>
+                  </TitledPane>
+               </children>
+            </VBox>
+            <VBox>
+               <children>
+                  <ToolBar>
+                     <items>
+                        <Button mnemonicParsing="false" onAction="#compile" text="Compile" />
+                        <ProgressIndicator fx:id="compileProgress" prefHeight="26.0" prefWidth="26.0" />
+                     </items>
+                  </ToolBar>
+                  <HBox VBox.vgrow="ALWAYS">
+                     <children>
+                        <TextArea fx:id="offsets" editable="false" maxWidth="-Infinity" minWidth="-Infinity" prefColumnCount="6" HBox.hgrow="NEVER" />
+                        <SplitPane dividerPositions="0.5" HBox.hgrow="ALWAYS">
+                           <items>
+                              <TextArea fx:id="tokens" maxWidth="1.7976931348623157E308" />
+                              <TextArea fx:id="text" editable="false" maxWidth="1.7976931348623157E308" />
+                           </items>
+                        </SplitPane>
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </items>
+      </SplitPane>
+   </children>
+</VBox>
