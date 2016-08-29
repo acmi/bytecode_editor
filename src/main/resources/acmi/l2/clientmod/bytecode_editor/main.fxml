@@ -9,6 +9,7 @@
 <?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TitledPane?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.input.KeyCodeCombination?>
@@ -46,6 +47,7 @@
          <items>
             <VBox>
                <children>
+                  <TextField fx:id="entriesSearchField" promptText="Filter" />
                   <ListView fx:id="entries" VBox.vgrow="ALWAYS" />
                   <TitledPane text="Search">
                      <content>

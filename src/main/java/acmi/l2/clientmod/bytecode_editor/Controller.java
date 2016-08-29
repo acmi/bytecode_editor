@@ -36,11 +36,14 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 
 import java.io.*;
@@ -56,6 +59,8 @@ import static org.codehaus.groovy.runtime.IOGroovyMethods.readLines;
 public class Controller implements Initializable {
     @FXML
     private ListView<ExportEntryView> entries;
+    @FXML
+    public TextField entriesSearchField;
     @FXML
     private TextArea offsets;
     @FXML
@@ -76,6 +81,7 @@ public class Controller implements Initializable {
     private ObjectProperty<File> selectedFile = new SimpleObjectProperty<>();
     private ObjectProperty<UnrealPackage> unrealPackage = new SimpleObjectProperty<>();
     private TokenSerializerFactory serializerFactory = new TokenSerializerFactory();
+    private ObservableList<ExportEntryView> entriesList = FXCollections.observableArrayList();
 
     private GroovyShell shell = new GroovyShell();
 
@@ -157,6 +163,22 @@ public class Controller implements Initializable {
 
         searchController.unrealPackageProperty().bind(unrealPackageProperty());
 
+        entries.setItems(entriesList);
+        entriesSearchField.textProperty().addListener((observable, oldVal, newVal) -> {
+            if (newVal.isEmpty()) {
+                entries.setItems(entriesList);
+                return;
+            }
+
+            String value = newVal.toLowerCase();
+            List<ExportEntryView> list = oldVal != null && newVal.length() > oldVal.length() ?
+                    entries.getItems() : entriesList;
+            entries.setItems(list
+                    .stream()
+                    .filter(entry -> entry.getEntry().getObjectInnerFullName().toLowerCase().contains(value))
+                    .collect(Collectors.toCollection(FXCollections::observableArrayList)));
+        });
+
         compileProgress.setVisible(false);
     }
 
@@ -181,10 +203,10 @@ public class Controller implements Initializable {
     }
 
     protected void buildTree() {
-        entries.getItems().clear();
+        entriesList.clear();
 
         if (getUnrealPackage() != null) {
-            entries.getItems().addAll(getUnrealPackage().getExportTable()
+            entriesList.addAll(getUnrealPackage().getExportTable()
                     .stream()
                     .filter(exportEntry -> exportEntry.getFullClassName().equalsIgnoreCase("Core.Struct") ||
                             exportEntry.getFullClassName().equalsIgnoreCase("Core.State") ||
