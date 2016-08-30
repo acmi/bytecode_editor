@@ -26,13 +26,12 @@ import acmi.l2.clientmod.io.UnrealPackage;
 import acmi.l2.clientmod.unreal.Environment;
 import acmi.l2.clientmod.unreal.UnrealSerializerFactory;
 import acmi.l2.clientmod.unreal.bytecode.token.NativeParam;
-import acmi.l2.clientmod.unreal.bytecode.token.Token;
+import acmi.l2.clientmod.unreal.core.Function;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -58,20 +57,23 @@ public class NFL {
         try {
             Field field = UnrealSerializerFactory.class.getDeclaredField("nativeFunctions");
             field.setAccessible(true);
-            Map<Integer, acmi.l2.clientmod.unreal.core.Function> map = (Map<Integer, acmi.l2.clientmod.unreal.core.Function>) field.get(serializerFactory);
+            Map<Integer, Function> map = (Map) field.get(serializerFactory);
             map.values().stream()
                     .sorted((f1, f2) -> Integer.compare(f1.nativeIndex, f2.nativeIndex))
-                    .forEach(f -> {
-                        List<String> params = new ArrayList<>();
-                        for (Token token : f.bytecode) {
-                            if (token instanceof NativeParam) {
-                                params.add(getType(f.entry.getUnrealPackage().objectReference(((NativeParam) token).objRef)));
-                            }
-                        }
-                        System.out.println("put(new Function(\"" + f.friendlyName + "\", " + params.stream().map(s -> '"' + s + '"').collect(Collectors.joining(", ", "Arrays.asList(", ")")) + ", " + f.nativeIndex + ", " + f.operatorPrecedence + ", " + f.functionFlags + "));");
-                    });
+                    .map(f -> String.format("put(new Function(\"%s\", %s, %d, %d, %d));",
+                            f.friendlyName,
+                            Arrays.stream(f.bytecode)
+                                    .filter(token -> token instanceof NativeParam)
+                                    .map(token -> getType(f.entry.getUnrealPackage().objectReference(((NativeParam) token).objRef)))
+                                    .map(s -> '"' + s + '"')
+                                    .collect(Collectors.joining(", ", "Arrays.asList(", ")")),
+                            f.nativeIndex,
+                            f.operatorPrecedence,
+                            f.functionFlags))
+                    .forEach(System.out::println);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            System.err.println("Couldn't access UnrealSerializerFactory.nativeFunctions");
+            e.printStackTrace(System.err);
             System.exit(1);
         }
     }
@@ -92,30 +94,18 @@ public class NFL {
                     return typeStr.replace("Property", "");
                 case "ArrayProperty": {
                     DataInputStream dis = new DataInputStream(new ByteArrayInputStream(entry.getObjectRawDataExternally()), null);
-                    dis.readCompactInt();
-                    dis.readCompactInt();
-                    dis.readCompactInt();
-                    dis.skip(8);
-                    dis.readCompactInt();
+                    skipPropertyFields(dis);
                     return "array<" + getType(entry.getUnrealPackage().objectReference(dis.readCompactInt())) + ">";
                 }
                 case "ClassProperty": {
                     DataInputStream dis = new DataInputStream(new ByteArrayInputStream(entry.getObjectRawDataExternally()), null);
-                    dis.readCompactInt();
-                    dis.readCompactInt();
-                    dis.readCompactInt();
-                    dis.skip(8);
-                    dis.readCompactInt();
+                    skipPropertyFields(dis);
                     return getType(entry.getUnrealPackage().objectReference(dis.readCompactInt())) + "<" + getType(entry.getUnrealPackage().objectReference(dis.readCompactInt())) + ">";
                 }
                 case "ObjectProperty":
                 case "StructProperty": {
                     DataInputStream dis = new DataInputStream(new ByteArrayInputStream(entry.getObjectRawDataExternally()), null);
-                    dis.readCompactInt();
-                    dis.readCompactInt();
-                    dis.readCompactInt();
-                    dis.skip(8);
-                    dis.readCompactInt();
+                    skipPropertyFields(dis);
                     return getType(entry.getUnrealPackage().objectReference(dis.readCompactInt()));
                 }
                 case "Class":
@@ -125,5 +115,13 @@ public class NFL {
                     throw new RuntimeException(typeStr);
             }
         }
+    }
+
+    private static void skipPropertyFields(DataInputStream dis) {
+        dis.readCompactInt();
+        dis.readCompactInt();
+        dis.readCompactInt();
+        dis.skip(8);
+        dis.readCompactInt();
     }
 }
