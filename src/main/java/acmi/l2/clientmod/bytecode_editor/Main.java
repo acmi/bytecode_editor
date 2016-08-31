@@ -22,6 +22,7 @@
 package acmi.l2.clientmod.bytecode_editor;
 
 import javafx.application.Application;
+import javafx.beans.InvalidationListener;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -50,6 +51,22 @@ public class Main extends Application {
 
         Controller controller = loader.getController();
         controller.application = this;
+
+        stage.setX(Double.parseDouble(getPrefs().get("window.x", String.valueOf(stage.getX()))));
+        stage.setY(Double.parseDouble(getPrefs().get("window.y", String.valueOf(stage.getY()))));
+        stage.setWidth(Double.parseDouble(getPrefs().get("window.width", String.valueOf(stage.getWidth()))));
+        stage.setHeight(Double.parseDouble(getPrefs().get("window.height", String.valueOf(stage.getHeight()))));
+
+        InvalidationListener listener = observable -> {
+            getPrefs().put("window.x", String.valueOf(Math.round(stage.getX())));
+            getPrefs().put("window.y", String.valueOf(Math.round(stage.getY())));
+            getPrefs().put("window.width", String.valueOf(Math.round(stage.getWidth())));
+            getPrefs().put("window.height", String.valueOf(Math.round(stage.getHeight())));
+        };
+        stage.xProperty().addListener(listener);
+        stage.yProperty().addListener(listener);
+        stage.widthProperty().addListener(listener);
+        stage.heightProperty().addListener(listener);
     }
 
     public static Preferences getPrefs() {
