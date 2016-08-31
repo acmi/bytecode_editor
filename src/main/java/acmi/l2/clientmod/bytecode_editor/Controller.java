@@ -21,6 +21,7 @@
  */
 package acmi.l2.clientmod.bytecode_editor;
 
+import acmi.l2.clientmod.bytecode_editor.calc.CalcController;
 import acmi.l2.clientmod.bytecode_editor.search.SearchController;
 import acmi.l2.clientmod.io.ObjectInput;
 import acmi.l2.clientmod.io.ObjectInputStream;
@@ -71,6 +72,9 @@ public class Controller implements Initializable {
     @SuppressWarnings("unused")
     @FXML
     private SearchController searchController;
+    @SuppressWarnings("unused")
+    @FXML
+    private CalcController calcController;
 
     @FXML
     private ProgressIndicator compileProgress;
@@ -180,6 +184,8 @@ public class Controller implements Initializable {
         });
 
         compileProgress.setVisible(false);
+
+        calcController.unrealPackageProperty().bind(unrealPackageProperty());
     }
 
     public void openPackage() {

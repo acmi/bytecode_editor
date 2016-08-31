@@ -43,6 +43,7 @@
           </Menu>
         </menus>
       </MenuBar>
+      <fx:include fx:id="calc" source="calc/calc.fxml" />
       <SplitPane dividerPositions="0.3333333333333333" VBox.vgrow="ALWAYS">
          <items>
             <VBox>

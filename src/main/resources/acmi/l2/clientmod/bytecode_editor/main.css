@@ -12,6 +12,6 @@
     -fx-font-family: 'Liberation Sans';
 }
 
-.text-area, .list-view, .cell{
+.text-area, .text-field, .list-view, .cell{
     -fx-font-family: 'Liberation Mono';
 }
