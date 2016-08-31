@@ -52,10 +52,10 @@ public class Main extends Application {
         Controller controller = loader.getController();
         controller.application = this;
 
-        stage.setX(Double.parseDouble(getPrefs().get("window.x", String.valueOf(stage.getX()))));
-        stage.setY(Double.parseDouble(getPrefs().get("window.y", String.valueOf(stage.getY()))));
-        stage.setWidth(Double.parseDouble(getPrefs().get("window.width", String.valueOf(stage.getWidth()))));
-        stage.setHeight(Double.parseDouble(getPrefs().get("window.height", String.valueOf(stage.getHeight()))));
+        stage.setX(Math.max(0, Double.parseDouble(getPrefs().get("window.x", String.valueOf(stage.getX())))));
+        stage.setY(Math.max(0, Double.parseDouble(getPrefs().get("window.y", String.valueOf(stage.getY())))));
+        stage.setWidth(Math.max(0, Double.parseDouble(getPrefs().get("window.width", String.valueOf(stage.getWidth())))));
+        stage.setHeight(Math.max(0, Double.parseDouble(getPrefs().get("window.height", String.valueOf(stage.getHeight())))));
 
         InvalidationListener listener = observable -> {
             getPrefs().put("window.x", String.valueOf(Math.round(stage.getX())));
