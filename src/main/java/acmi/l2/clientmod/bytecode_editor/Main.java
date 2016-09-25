@@ -22,15 +22,26 @@
 package acmi.l2.clientmod.bytecode_editor;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Paths;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.prefs.Preferences;
 
 public class Main extends Application {
     private Stage stage;
+
+    private String applicationVersion = "unknown";
 
     public Stage getStage() {
         return stage;
@@ -38,6 +49,10 @@ public class Main extends Application {
 
     private void setStage(Stage stage) {
         this.stage = stage;
+    }
+
+    public String getApplicationVersion() {
+        return applicationVersion;
     }
 
     @Override
@@ -52,25 +67,69 @@ public class Main extends Application {
         Controller controller = loader.getController();
         controller.application = this;
 
-        stage.setX(Math.max(0, Double.parseDouble(getPrefs().get("window.x", String.valueOf(stage.getX())))));
-        stage.setY(Math.max(0, Double.parseDouble(getPrefs().get("window.y", String.valueOf(stage.getY())))));
-        stage.setWidth(Math.max(0, Double.parseDouble(getPrefs().get("window.width", String.valueOf(stage.getWidth())))));
-        stage.setHeight(Math.max(0, Double.parseDouble(getPrefs().get("window.height", String.valueOf(stage.getHeight())))));
+        Platform.runLater(() -> {
+            try {
+                applicationVersion = readAppVersion();
+            } catch (FileNotFoundException ignore) {
+            } catch (IOException | URISyntaxException e) {
+                System.err.println("version info load error");
+                e.printStackTrace(System.err);
+            }
+        });
 
-        InvalidationListener listener = observable -> {
-            getPrefs().put("window.x", String.valueOf(Math.round(stage.getX())));
-            getPrefs().put("window.y", String.valueOf(Math.round(stage.getY())));
-            getPrefs().put("window.width", String.valueOf(Math.round(stage.getWidth())));
-            getPrefs().put("window.height", String.valueOf(Math.round(stage.getHeight())));
-        };
-        stage.xProperty().addListener(listener);
-        stage.yProperty().addListener(listener);
-        stage.widthProperty().addListener(listener);
-        stage.heightProperty().addListener(listener);
+        Platform.runLater(() -> {
+            stage.setWidth(Double.parseDouble(windowPrefs().get("width", String.valueOf(stage.getWidth()))));
+            stage.setHeight(Double.parseDouble(windowPrefs().get("height", String.valueOf(stage.getHeight()))));
+            if (windowPrefs().getBoolean("maximized", stage.isMaximized())) {
+                stage.setMaximized(true);
+            } else {
+                Rectangle2D bounds = new Rectangle2D(
+                        Double.parseDouble(windowPrefs().get("x", String.valueOf(stage.getX()))),
+                        Double.parseDouble(windowPrefs().get("y", String.valueOf(stage.getY()))),
+                        stage.getWidth(),
+                        stage.getHeight());
+                if (Screen.getScreens()
+                        .stream()
+                        .map(Screen::getVisualBounds)
+                        .anyMatch(r -> r.intersects(bounds))) {
+                    stage.setX(bounds.getMinX());
+                    stage.setY(bounds.getMinY());
+                }
+            }
+        });
+
+        Platform.runLater(() -> {
+            InvalidationListener listener = observable -> {
+                if (stage.isMaximized()) {
+                    windowPrefs().putBoolean("maximized", true);
+                } else {
+                    windowPrefs().putBoolean("maximized", false);
+                    windowPrefs().put("x", String.valueOf(Math.round(stage.getX())));
+                    windowPrefs().put("y", String.valueOf(Math.round(stage.getY())));
+                    windowPrefs().put("width", String.valueOf(Math.round(stage.getWidth())));
+                    windowPrefs().put("height", String.valueOf(Math.round(stage.getHeight())));
+                }
+            };
+            stage.xProperty().addListener(listener);
+            stage.yProperty().addListener(listener);
+            stage.widthProperty().addListener(listener);
+            stage.heightProperty().addListener(listener);
+        });
+    }
+
+    private String readAppVersion() throws IOException, URISyntaxException {
+        try (JarFile jarFile = new JarFile(Paths.get(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).toFile())) {
+            Manifest manifest = jarFile.getManifest();
+            return manifest.getMainAttributes().getValue("Version");
+        }
     }
 
     public static Preferences getPrefs() {
-        return Preferences.userRoot().node("bytecode_editor");
+        return Preferences.userRoot().node("l2clientmod").node("bytecode_editor");
+    }
+
+    private static Preferences windowPrefs() {
+        return getPrefs().node("window");
     }
 
     public static void main(String[] args) {

@@ -41,11 +41,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressIndicator;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.geometry.Insets;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.StageStyle;
 
 import java.io.*;
 import java.net.URL;
@@ -138,7 +138,7 @@ public class Controller implements Initializable {
 
             try (UnrealPackage up = new UnrealPackage(getSelectedFile(), true)) {
                 return up;
-            } catch (UncheckedIOException e) {
+            } catch (Exception e) {
                 return null;
             }
         }, selectedFileProperty()));
@@ -281,7 +281,7 @@ public class Controller implements Initializable {
                         (text = tokens.getText()).isEmpty())
                     return;
 
-                int lineNum = 0;
+                int lineNum = 1;
                 try {
                     List<Token> tokens = new ArrayList<>();
 
@@ -322,12 +322,57 @@ public class Controller implements Initializable {
                         entries.getSelectionModel().select(index);
                     });
                 } catch (Exception e) {
-                    System.err.println("Exception at line " + lineNum);
+                    String msg = "Exception at line " + lineNum;
+                    if (e instanceof ClassNotFoundException) {
+                        String[] path = e.getMessage().split("\\.");
+                        msg += ":\nUnknown token " + path[path.length - 1];
+                    }
+                    System.err.println(msg);
                     e.printStackTrace();
+
+                    String fmsg = msg;
+                    Platform.runLater(() -> show(Alert.AlertType.ERROR, "Error", null, fmsg));
                 } finally {
                     Platform.runLater(() -> compileProgress.setVisible(false));
                 }
             }
         }.start();
+    }
+
+    public void about() {
+        Dialog dialog = new Dialog();
+        dialog.initStyle(StageStyle.UTILITY);
+        dialog.setTitle("About");
+
+        Label name = new Label("Bytecode editor");
+        Label version = new Label("Version: " + application.getApplicationVersion());
+        Label jre = new Label("JRE: " + System.getProperty("java.version"));
+        Label jvm = new Label("JVM: " + System.getProperty("java.vm.name") + " by " + System.getProperty("java.vendor"));
+        Hyperlink link = new Hyperlink("GitHub");
+        link.setOnAction(event -> application.getHostServices().showDocument("https://github.com/acmi/bytecode_editor"));
+
+        Label license = new Label("Open source licenses");
+        Hyperlink licenseApache = new Hyperlink("Apache Commons IO, Apache Commons Lang, Groovy");
+        licenseApache.setOnAction(event -> application.getHostServices().showDocument("http://www.apache.org/licenses/LICENSE-2.0.txt"));
+
+        VBox content = new VBox(name, version, jre, jvm, link, license, licenseApache);
+        VBox.setMargin(jre, new Insets(10, 0, 0, 0));
+        VBox.setMargin(link, new Insets(10, 0, 0, 0));
+        VBox.setMargin(license, new Insets(15, 0, 0, 0));
+
+        DialogPane pane = new DialogPane();
+        pane.setContent(content);
+        pane.getButtonTypes().addAll(ButtonType.OK);
+        dialog.setDialogPane(pane);
+
+        dialog.showAndWait();
+    }
+
+    private static void show(Alert.AlertType alertType, String title, String headerText, String contentText) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(headerText);
+        alert.setContentText(contentText);
+        alert.show();
     }
 }
