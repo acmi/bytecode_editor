@@ -22,56 +22,36 @@
 package acmi.l2.clientmod.unreal.bytecode.token;
 
 import acmi.l2.clientmod.io.ObjectInput;
-import acmi.l2.clientmod.io.ObjectOutput;
+import acmi.l2.clientmod.io.UnrealPackage;
 import acmi.l2.clientmod.io.annotation.ReadMethod;
 import acmi.l2.clientmod.io.annotation.UByte;
-import acmi.l2.clientmod.io.annotation.UShort;
-import acmi.l2.clientmod.io.annotation.WriteMethod;
 import acmi.l2.clientmod.unreal.UnrealRuntimeContext;
 import acmi.l2.clientmod.unreal.bytecode.BytecodeContext;
 
 import java.io.UncheckedIOException;
+import java.util.concurrent.ForkJoinPool;
 
-public class Context extends Token {
-    public static final int OPCODE = 0x19;
+public class Switch extends Token {
+    public static final int OPCODE = 0x05;
 
-    public Token object;
-    @UShort
-    public int wSkip;   //member size
     @UByte
-    public int bSize;   //member call result size
-    public Token member;
+    public int offset;  //expression size (string->0 byte->1 int->4 int64->8)
+    public Token expression;
 
-    public Context(Token object, int bSize, Token member) {
-        this(object, -1, bSize, member);
+    public Switch(int offset, Token expression) {
+        this.offset = offset;
+        this.expression = expression;
     }
 
-    public Context(Token object, int wSkip, int bSize, Token member) {
-        this.object = object;
-        this.wSkip = wSkip;
-        this.bSize = bSize;
-        this.member = member;
-    }
-
-    public Context() {
+    public Switch() {
     }
 
     @ReadMethod
     public final void readSwitch(ObjectInput<BytecodeContext> input) throws UncheckedIOException {
-        object = input.readObject(Token.class);
-        wSkip = input.readUnsignedShort();
-        bSize = input.readUnsignedByte();
-        member = input.readObject(Token.class);
+        offset = input.readUnsignedByte();
+        expression = input.readObject(Token.class);
 
-        Util.test(bSize, object, member, input.getContext().getUnrealPackage().getExportTable().get(0));
-    }
-
-    @WriteMethod
-    public final void writeContext(ObjectOutput<BytecodeContext> output) throws UncheckedIOException {
-        output.write(object);
-        output.writeShort(wSkip < 0 ? member.getSize(output.getContext()) : wSkip);
-        output.writeByte(bSize);
-        output.write(member);
+        Util.test(offset, null, expression, input.getContext().getUnrealPackage().getExportTable().get(0));
     }
 
     @Override
@@ -81,15 +61,14 @@ public class Context extends Token {
 
     @Override
     public String toString() {
-        return "Context("
-                + object
-                + ", " + bSize
-                + ", " + member
+        return "Switch("
+                + offset
+                + ", " + expression
                 + ')';
     }
 
     @Override
     public String toString(UnrealRuntimeContext context) {
-        return object.toString(context) + "." + member.toString(context);
+        return "switch(" + expression.toString(context) + ")";
     }
 }

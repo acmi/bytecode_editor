@@ -21,7 +21,9 @@
  */
 package acmi.l2.clientmod.unreal.bytecode.token;
 
+import acmi.l2.clientmod.io.ObjectInput;
 import acmi.l2.clientmod.io.ObjectOutput;
+import acmi.l2.clientmod.io.annotation.ReadMethod;
 import acmi.l2.clientmod.io.annotation.UByte;
 import acmi.l2.clientmod.io.annotation.UShort;
 import acmi.l2.clientmod.io.annotation.WriteMethod;
@@ -52,6 +54,16 @@ public class ClassContext extends Token {
     }
 
     public ClassContext() {
+    }
+
+    @ReadMethod
+    public final void readSwitch(ObjectInput<BytecodeContext> input) throws UncheckedIOException {
+        clazz = input.readObject(Token.class);
+        wSkip = input.readUnsignedShort();
+        bSize = input.readUnsignedByte();
+        member = input.readObject(Token.class);
+
+        Util.test(bSize, clazz, member, input.getContext().getUnrealPackage().getExportTable().get(0));
     }
 
     @WriteMethod
