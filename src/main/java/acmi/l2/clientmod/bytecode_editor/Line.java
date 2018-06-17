@@ -21,26 +21,11 @@
  */
 package acmi.l2.clientmod.bytecode_editor;
 
-public class Line {
-    private int offset;
-    private String token;
-    private String text;
+import lombok.Data;
 
-    public Line(int offset, String token, String text) {
-        this.offset = offset;
-        this.token = token;
-        this.text = text;
-    }
-
-    public int getOffset() {
-        return offset;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public String getText() {
-        return text;
-    }
+@Data
+class Line {
+    private final int offset;
+    private final String token;
+    private final String text;
 }

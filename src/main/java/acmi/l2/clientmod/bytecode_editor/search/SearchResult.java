@@ -23,17 +23,13 @@ package acmi.l2.clientmod.bytecode_editor.search;
 
 import acmi.l2.clientmod.bytecode_editor.Function;
 import acmi.l2.clientmod.io.UnrealPackage;
+import lombok.Data;
 
+@Data
 public class SearchResult {
     private final int ref;
     private final String type;
     private final String value;
-
-    public SearchResult(int ref, String type, String value) {
-        this.ref = ref;
-        this.type = type;
-        this.value = value;
-    }
 
     public static SearchResult of(UnrealPackage.NameEntry nameEntry) {
         return new SearchResult(nameEntry.getIndex(), "Name", nameEntry.getName());
@@ -49,17 +45,5 @@ public class SearchResult {
 
     public static SearchResult of(Function natFunc) {
         return new SearchResult(natFunc.getNativeIndex(), "Func", natFunc.getNameWithParams());
-    }
-
-    public int getRef() {
-        return ref;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getValue() {
-        return value;
     }
 }

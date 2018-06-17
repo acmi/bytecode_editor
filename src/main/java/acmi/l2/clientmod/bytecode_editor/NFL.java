@@ -32,6 +32,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -57,9 +58,9 @@ public class NFL {
         try {
             Field field = UnrealSerializerFactory.class.getDeclaredField("nativeFunctions");
             field.setAccessible(true);
-            Map<Integer, Function> map = (Map) field.get(serializerFactory);
+            Map<Integer, Function> map = (Map<Integer, Function>) field.get(serializerFactory);
             map.values().stream()
-                    .sorted((f1, f2) -> Integer.compare(f1.nativeIndex, f2.nativeIndex))
+                    .sorted(Comparator.comparingInt(it -> it.nativeIndex))
                     .map(f -> String.format("put(new Function(\"%s\", %s, %d, %d, %d));",
                             f.friendlyName,
                             Arrays.stream(f.bytecode)

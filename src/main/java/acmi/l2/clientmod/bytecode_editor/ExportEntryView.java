@@ -22,7 +22,11 @@
 package acmi.l2.clientmod.bytecode_editor;
 
 import acmi.l2.clientmod.io.UnrealPackage;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 public class ExportEntryView {
     private UnrealPackage.ExportEntry entry;
     private int bytecodeStartOffset;
@@ -31,38 +35,6 @@ public class ExportEntryView {
 
     public ExportEntryView(UnrealPackage.ExportEntry entry) {
         this.entry = entry;
-    }
-
-    public UnrealPackage.ExportEntry getEntry() {
-        return entry;
-    }
-
-    public void setEntry(UnrealPackage.ExportEntry entry) {
-        this.entry = entry;
-    }
-
-    public int getBytecodeStartOffset() {
-        return bytecodeStartOffset;
-    }
-
-    public void setBytecodeStartOffset(int bytecodeStartOffset) {
-        this.bytecodeStartOffset = bytecodeStartOffset;
-    }
-
-    public int getBytecodeBytesSize() {
-        return bytecodeBytesSize;
-    }
-
-    public void setBytecodeBytesSize(int bytecodeBytesSize) {
-        this.bytecodeBytesSize = bytecodeBytesSize;
-    }
-
-    public int getBytecodeSize() {
-        return bytecodeSize;
-    }
-
-    public void setBytecodeSize(int bytecodeSize) {
-        this.bytecodeSize = bytecodeSize;
     }
 
     public String getType() {

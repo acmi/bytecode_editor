@@ -31,6 +31,7 @@ import acmi.l2.clientmod.unreal.UnrealRuntimeContext;
 import acmi.l2.clientmod.unreal.bytecode.BytecodeContext;
 import acmi.l2.clientmod.unreal.bytecode.TokenSerializerFactory;
 import acmi.l2.clientmod.unreal.bytecode.token.Token;
+import acmi.l2.clientmod.unreal.core.Function.Flag;
 import groovy.lang.GroovyShell;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -51,6 +52,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -159,9 +161,14 @@ public class Controller implements Initializable {
                 return;
 
             loadEntry(newValue, line -> {
-                offsets.appendText(String.format("0x%04x", line.getOffset()) + "\n");
-                tokens.appendText(line.getToken() + "\n");
-                text.appendText(line.getText() + "\n");
+                String[] textLines = Optional.ofNullable(line.getText())
+                        .map(s -> s.split("\n"))
+                        .orElse(new String[]{""});
+                for (int i=0; i<textLines.length; i++) {
+                    offsets.appendText(i == 0 ? String.format("0x%04x", line.getOffset()) + "\n" : "\n");
+                    tokens.appendText(i == 0 ? line.getToken() + "\n" : "\n");
+                    text.appendText(textLines[i] + "\n");
+                }
             });
         });
 
@@ -216,7 +223,7 @@ public class Controller implements Initializable {
                     .stream()
                     .filter(exportEntry -> exportEntry.getFullClassName().equalsIgnoreCase("Core.Struct") ||
                             exportEntry.getFullClassName().equalsIgnoreCase("Core.State") ||
-                            (exportEntry.getFullClassName().equalsIgnoreCase("Core.Function") && !Function.fromExportEntry(exportEntry).getFlags().contains(Function.Flag.NATIVE)))
+                            (exportEntry.getFullClassName().equalsIgnoreCase("Core.Function") && !Function.fromExportEntry(exportEntry).getFlags().contains(Flag.NATIVE)))
 
                     .sorted((o1, o2) -> o1.getObjectInnerFullName().compareToIgnoreCase(o2.getObjectInnerFullName()))
                     .map(ExportEntryView::new)
@@ -258,7 +265,8 @@ public class Controller implements Initializable {
             String code = "ERROR";
             try {
                 code = token.toString(new UnrealRuntimeContext(entry, null));
-            } catch (Exception ignore) {
+            } catch (Exception e) {
+                e.printStackTrace();
             }
             output.accept(new Line(readSize, token.toString(), code));
 
@@ -285,7 +293,7 @@ public class Controller implements Initializable {
                 try {
                     List<Token> tokens = new ArrayList<>();
 
-                    for (String line : readLines(new StringReader(text))) {
+                    for (String line: readLines(new StringReader(text))) {
                         if (line.isEmpty())
                             continue;
 

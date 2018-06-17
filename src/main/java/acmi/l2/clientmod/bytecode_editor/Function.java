@@ -21,6 +21,17 @@
  */
 package acmi.l2.clientmod.bytecode_editor;
 
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import acmi.l2.clientmod.io.DataInputStream;
 import acmi.l2.clientmod.io.ObjectInput;
 import acmi.l2.clientmod.io.ObjectInputStream;
@@ -29,40 +40,23 @@ import acmi.l2.clientmod.unreal.bytecode.BytecodeContext;
 import acmi.l2.clientmod.unreal.bytecode.TokenSerializerFactory;
 import acmi.l2.clientmod.unreal.bytecode.token.NativeParam;
 import acmi.l2.clientmod.unreal.bytecode.token.Token;
+import acmi.l2.clientmod.unreal.core.Function.Flag;
+import lombok.Data;
 
-import java.io.ByteArrayInputStream;
-import java.util.*;
-import java.util.stream.Collectors;
-
+@Data
 public class Function {
-    private String name;
-    private List<String> params;
+    private final String name;
+    private final List<String> params;
     private String nameWithParams;
-    private int nativeIndex;
-    private int operatorPrecedence;
-    private int flags;
-
-    public Function(String name, List<String> params, int nativeIndex, int operatorPrecedence, int flags) {
-        this.name = name;
-        this.params = params;
-        this.nativeIndex = nativeIndex;
-        this.operatorPrecedence = operatorPrecedence;
-        this.flags = flags;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public List<String> getParams() {
-        return params;
-    }
+    private final int nativeIndex;
+    private final int operatorPrecedence;
+    private final int flags;
 
     public String getNameWithParams() {
         if (nameWithParams == null) {
-            if (getFlags().contains(Function.Flag.PRE_OPERATOR)) {
+            if (getFlags().contains(Flag.PRE_OPERATOR)) {
                 nameWithParams = getName() + getParams().get(0);
-            } else if (getFlags().contains(Function.Flag.OPERATOR)) {
+            } else if (getFlags().contains(Flag.OPERATOR)) {
                 if (getOperatorPrecedence() > 0) {
                     nameWithParams = getParams().get(0) + getName() + getParams().get(1);
                 } else {
@@ -73,14 +67,6 @@ public class Function {
             }
         }
         return nameWithParams;
-    }
-
-    public int getNativeIndex() {
-        return nativeIndex;
-    }
-
-    public int getOperatorPrecedence() {
-        return operatorPrecedence;
     }
 
     public Collection<Flag> getFlags() {
@@ -438,108 +424,6 @@ public class Function {
                 default:
                     throw new RuntimeException(typeStr);
             }
-        }
-    }
-
-    public enum Flag {
-        /**
-         * Function is final (prebindable, non-overridable function).
-         */
-        FINAL,
-        /**
-         * Function has been defined (not just declared).
-         */
-        DEFINED,
-        /**
-         * Function is an iterator.
-         */
-        ITERATOR,
-        /**
-         * Function is a latent state function.
-         */
-        LATENT,
-        /**
-         * Unary operator is a prefix operator.
-         */
-        PRE_OPERATOR,
-        /**
-         * Function cannot be reentered.
-         */
-        SINGULAR,
-        /**
-         * Function is network-replicated.
-         */
-        NET,
-        /**
-         * Function should be sent reliably on the network.
-         */
-        NET_RELIABLE,
-        /**
-         * Function executed on the client side.
-         */
-        SIMULATED,
-        /**
-         * Executable from command line.
-         */
-        EXEC,
-        /**
-         * Native function.
-         */
-        NATIVE,
-        /**
-         * Event function.
-         */
-        EVENT,
-        /**
-         * Operator function.
-         */
-        OPERATOR,
-        /**
-         * Static function.
-         */
-        STATIC,
-        /**
-         * Don't export intrinsic function to C++.
-         */
-        NO_EXPORT,
-        /**
-         * Function doesn't modify this object.
-         */
-        CONST,
-        /**
-         * Return value is purely dependent on parameters; no state dependencies or internal state changes.
-         */
-        INVARIANT,
-        PROTECTED,
-        Flag18,
-        Flag19,
-        /**
-         * Function is a delegate
-         */
-        DELEGATE;
-
-        private int mask = 1 << ordinal();
-
-        public int getMask() {
-            return mask;
-        }
-
-        @Override
-        public String toString() {
-            return "FF_" + name();
-        }
-
-        public static Collection<Flag> getFlags(int flags) {
-            return Arrays.stream(values())
-                    .filter(e -> (e.getMask() & flags) != 0)
-                    .collect(Collectors.toList());
-        }
-
-        public static int getFlags(Flag... flags) {
-            int v = 0;
-            for (Flag flag : flags)
-                v |= flag.getMask();
-            return v;
         }
     }
 }

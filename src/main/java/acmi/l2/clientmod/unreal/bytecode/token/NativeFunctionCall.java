@@ -25,6 +25,11 @@ import acmi.l2.clientmod.bytecode_editor.Function;
 import acmi.l2.clientmod.io.DataOutput;
 import acmi.l2.clientmod.unreal.UnrealRuntimeContext;
 import acmi.l2.clientmod.unreal.bytecode.token.annotation.FunctionParams;
+import acmi.l2.clientmod.unreal.core.Function.Flag;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.UncheckedIOException;
 import java.util.Arrays;
@@ -33,6 +38,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@Getter
+@Setter
 public class NativeFunctionCall extends Token {
     public transient int nativeIndex;
     @FunctionParams
@@ -41,9 +50,6 @@ public class NativeFunctionCall extends Token {
     public NativeFunctionCall(int nativeIndex, Token... params) {
         this.nativeIndex = nativeIndex;
         this.params = params;
-    }
-
-    public NativeFunctionCall() {
     }
 
     protected int getOpcode() {
@@ -75,9 +81,16 @@ public class NativeFunctionCall extends Token {
         Optional<Function> function = Function.getNativeByIndex(nativeIndex);
         if (function.isPresent()) {
             Function f = function.get();
-            if (f.getFlags().contains(Function.Flag.PRE_OPERATOR)) {
-                return f.getName() + params[0].toString(context);
-            } else if (f.getFlags().contains(Function.Flag.OPERATOR)) {
+            if (f.getFlags().contains(Flag.PRE_OPERATOR)) {
+                String b = params[0].toString(context);
+                if (params[0] instanceof NativeFunctionCall){
+                    Function inner = Function.getNativeByIndex(((NativeFunctionCall) params[0]).nativeIndex).orElse(null);
+                    if (inner != null && inner.getFlags().contains(Flag.OPERATOR)){
+                        b = "(" + b + ")";
+                    }
+                }
+                return f.getName() + b;
+            } else if (f.getFlags().contains(Flag.OPERATOR)) {
                 if (f.getOperatorPrecedence() > 0) {
                     return params[0].toString(context) + " " + f.getName() + " " + params[params.length - 1].toString(context);
                 } else {

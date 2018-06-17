@@ -29,6 +29,9 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,22 +41,13 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.prefs.Preferences;
 
+@Getter
+@Setter
 public class Main extends Application {
     private Stage stage;
 
+    @Setter(AccessLevel.PRIVATE)
     private String applicationVersion = "unknown";
-
-    public Stage getStage() {
-        return stage;
-    }
-
-    private void setStage(Stage stage) {
-        this.stage = stage;
-    }
-
-    public String getApplicationVersion() {
-        return applicationVersion;
-    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -69,7 +63,7 @@ public class Main extends Application {
 
         Platform.runLater(() -> {
             try {
-                applicationVersion = readAppVersion();
+                setApplicationVersion(readAppVersion());
             } catch (FileNotFoundException ignore) {
             } catch (IOException | URISyntaxException e) {
                 System.err.println("version info load error");

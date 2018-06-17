@@ -1,4 +1,4 @@
-version = '0.1.1'
+version = '0.1.2'
 
 apply plugin: 'java'
 apply plugin: 'application'
@@ -16,9 +16,10 @@ repositories {
 
 dependencies {
     compile group: 'org.codehaus.groovy', name: 'groovy-all', version: '2.4.7'
-    compile group: 'acmi.l2.clientmod', name: 'l2unreal', version: '1.4.+'
+    compile group: 'acmi.l2.clientmod', name: 'l2unreal', version: '1.5.+'
     compile group: 'commons-io', name: 'commons-io', version: '2.5'
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+    compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.0'
 }
 
 jar {
